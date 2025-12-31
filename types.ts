@@ -1,11 +1,13 @@
 
 export type Difficulty = 'tiny' | 'normal' | 'advanced';
 export type Mood = 'happy' | 'okay' | 'stressed' | 'none';
+export type Barrier = 'forgot' | 'no-time' | 'tired' | 'not-feeling-it' | 'none';
 
 export interface HabitLog {
   date: string; // ISO Date
   completed: boolean;
   mood: Mood;
+  barrier?: Barrier;
   notes?: {
     win: string;
     learned: string;

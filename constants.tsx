@@ -8,6 +8,22 @@ export const TINY_HABITS = [
   { name: "Journal", goal: "Write one sentence about today", icon: "✍️", category: "Mind" },
 ];
 
+export const SCIENCE_TIPS = [
+  "Habits stick faster when you attach them to another existing habit (Habit Stacking).",
+  "Tiny steps every day > big effort once a week. Your brain loves easy wins.",
+  "Your environment dictates your behavior. Place visual cues where you'll see them.",
+  "Missing one day doesn't ruin a habit. Missing two is the start of a new one.",
+  "The 'Goldilocks Zone' of habits: Not too easy to be boring, not too hard to be scary.",
+  "Motivation is a wave; systems are the surfboard. Build the system first."
+];
+
+export const BARRIER_SOLUTIONS: Record<string, string> = {
+  'forgot': "Try a sticky note on your mirror or a phone wallpaper reminder!",
+  'no-time': "Can you do a 'Nano' version? 30 seconds is better than zero.",
+  'tired': "Do the '2-Minute Version'—just start, and you can stop after 120 seconds.",
+  'not-feeling-it': "Focus on how you'll feel *after* you've done it, even for a moment."
+};
+
 export const HABIT_PLANS = [
   {
     id: "sleep",

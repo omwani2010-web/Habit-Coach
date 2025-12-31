@@ -1,6 +1,7 @@
 
-import React from 'react';
-import { Habit } from '../types';
+import React, { useState } from 'react';
+import { Habit, Barrier } from '../types';
+import { BARRIER_SOLUTIONS } from '../constants';
 
 interface HabitCardProps {
   habit: Habit;
@@ -10,18 +11,32 @@ interface HabitCardProps {
 }
 
 const HabitCard: React.FC<HabitCardProps> = ({ habit, onCheckIn, onRescue, onDelete }) => {
+  const [selectedBarrier, setSelectedBarrier] = useState<Barrier | null>(null);
   const today = new Date().toISOString().split('T')[0];
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterday = yesterdayDate.toISOString().split('T')[0];
+
   const isDoneToday = habit.logs.some(log => log.date === today && log.completed);
   
-  // Logic for Restart Mode detection: If streak is 0 and they have logs but nothing recently
-  const lastLogDate = habit.logs.length > 0 ? habit.logs[habit.logs.length - 1].date : null;
-  const isStruggling = habit.streak === 0 && lastLogDate && lastLogDate !== today;
+  // Logic for Barriers Helper: If they missed yesterday and haven't done today yet
+  // Refined: Only trigger if the habit has some history (logs.length > 0)
+  const yesterdayLog = habit.logs.find(l => l.date === yesterday);
+  const missedYesterday = !yesterdayLog || !yesterdayLog.completed;
+  const isStruggling = habit.logs.length > 0 && habit.streak === 0 && missedYesterday && !isDoneToday;
+
+  const barriers: { id: Barrier; label: string }[] = [
+    { id: 'forgot', label: 'I forgot' },
+    { id: 'no-time', label: 'No time' },
+    { id: 'tired', label: 'Felt tired' },
+    { id: 'not-feeling-it', label: "Didn't feel like it" },
+  ];
 
   return (
-    <div className={`p-5 rounded-3xl transition-all duration-300 ${
+    <div className={`p-5 rounded-3xl transition-all duration-300 transform hover:scale-[1.01] ${
       isDoneToday 
       ? 'bg-slate-50 dark:bg-slate-800/50 opacity-80 border border-transparent' 
-      : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md'
+      : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.15)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)]'
     }`}>
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
@@ -41,15 +56,47 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onCheckIn, onRescue, onDel
         </div>
       </div>
       
-      {isStruggling && !isDoneToday && onRescue && (
-        <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30">
-          <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 mb-2">Feeling stuck? Let's rescue this habit.</p>
-          <button 
-            onClick={() => onRescue(habit)}
-            className="w-full py-2 bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 text-[10px] font-bold rounded-xl border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition-colors"
-          >
-            Reduce to Tiny Step
-          </button>
+      {isStruggling && !isDoneToday && (
+        <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30 animate-in fade-in slide-in-from-top-2">
+          {!selectedBarrier ? (
+            <>
+              <p className="text-[11px] font-bold text-amber-800 dark:text-amber-400 mb-3">What stopped you yesterday?</p>
+              <div className="grid grid-cols-2 gap-2">
+                {barriers.map(b => (
+                  <button 
+                    key={b.id} 
+                    onClick={() => setSelectedBarrier(b.id)}
+                    className="py-2 px-1 text-[10px] font-bold bg-white dark:bg-slate-700 rounded-xl border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition-colors"
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-[11px] font-bold text-emerald-800 dark:text-emerald-400">💡 Coach Idea:</p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed italic">
+                "{BARRIER_SOLUTIONS[selectedBarrier]}"
+              </p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setSelectedBarrier(null)}
+                  className="flex-1 py-2 text-[9px] font-black uppercase text-amber-600 bg-white rounded-lg border border-amber-200"
+                >
+                  Back
+                </button>
+                {onRescue && (
+                  <button 
+                    onClick={() => onRescue(habit)}
+                    className="flex-1 py-2 text-[9px] font-black uppercase text-white bg-amber-500 rounded-lg shadow-sm"
+                  >
+                    Go Tiny
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

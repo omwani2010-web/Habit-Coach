@@ -1,7 +1,8 @@
 
 import React, { useMemo } from 'react';
 import { Habit, Mood } from '../types';
-import { ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { SCIENCE_TIPS } from '../constants';
 
 interface DashboardProps {
   habits: Habit[];
@@ -38,18 +39,10 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
       const dayLogs = allLogs.filter(l => l.date === dateStr && l.completed);
       const count = dayLogs.length;
       
-      // Calculate mood score for the line chart (happy: 2, okay: 1, stressed: 0)
-      const moodScore = dayLogs.length > 0 ? dayLogs.reduce((acc, l) => {
-        if (l.mood === 'happy') return acc + 2;
-        if (l.mood === 'okay') return acc + 1;
-        return acc;
-      }, 0) / dayLogs.length : 1;
-
       return { 
         name: d.toLocaleDateString('en-US', { weekday: 'short' }), 
         dateStr,
-        count,
-        moodScore 
+        count 
       };
     });
 
@@ -59,6 +52,11 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
     const consistencyRate = totalPotentialCompletions > 0 
       ? (totalActualCompletions / totalPotentialCompletions) * 100 
       : 0;
+
+    // Growth Score (Consistency + Effort + Tiny Improvements)
+    // Basic calc: (Avg Streak * 10) + (Consistency Rate * 0.5)
+    const avgStreak = habits.length > 0 ? activeStreaks / habits.length : 0;
+    const growthScore = Math.min(100, Math.round((avgStreak * 5) + (consistencyRate * 0.5)));
     
     // Find latest small win
     const latestWin = [...allLogs].filter(l => l.notes?.win).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
@@ -82,6 +80,8 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
       }
     });
 
+    const tip = SCIENCE_TIPS[Math.floor(Math.random() * SCIENCE_TIPS.length)];
+
     return { 
       totalHabits, 
       activeStreaks, 
@@ -89,7 +89,9 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
       last7Days, 
       latestWin, 
       dominantMood, 
-      moodCounts 
+      moodCounts,
+      growthScore,
+      tip
     };
   }, [habits]);
 
@@ -98,7 +100,7 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="text-8xl mb-6">🪴</div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Your garden is empty</h2>
-        <p className="text-slate-500 dark:text-slate-400 max-w-sm mt-3">Add your first habit to start growing consistency. Small steps lead to big changes.</p>
+        <p className="text-slate-500 dark:text-slate-400 max-w-sm mt-3">Add your first tiny habit to start growing. We support mastery of 1-3 goals at a time.</p>
       </div>
     );
   }
@@ -108,22 +110,22 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
       {/* Top Level Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-6 rounded-3xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30">
-          <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-2">Total Streaks</div>
-          <div className="text-4xl font-bold text-emerald-900 dark:text-emerald-100">{stats.activeStreaks}</div>
-          <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-2 font-black">🔥 ON FIRE</div>
+          <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-2">Growth Score</div>
+          <div className="text-4xl font-bold text-emerald-900 dark:text-emerald-100">{stats.growthScore}%</div>
+          <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-2 font-black">📈 IMPROVING</div>
         </div>
         <div className="p-6 rounded-3xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
           <div className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase mb-2">7d Consistency</div>
           <div className="text-4xl font-bold text-blue-900 dark:text-slate-100">{Math.round(stats.consistencyRate)}%</div>
-          <div className="text-[10px] text-blue-600 dark:text-blue-400 mt-2 font-black uppercase">✨ PAST WEEK</div>
+          <div className="text-[10px] text-blue-600 dark:text-blue-400 mt-2 font-black uppercase">✨ Show Up Rate</div>
         </div>
         <div className="p-6 rounded-3xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
-          <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase mb-2">Tiny Habits</div>
-          <div className="text-4xl font-bold text-amber-900 dark:text-slate-100">{habits.filter(h => h.difficulty === 'tiny').length}</div>
-          <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-2 font-black uppercase">🌱 ACTIVE NOW</div>
+          <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase mb-2">Current Habits</div>
+          <div className="text-4xl font-bold text-amber-900 dark:text-slate-100">{habits.length}/3</div>
+          <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-2 font-black uppercase">🛡️ OVERWHELM SHIELD</div>
         </div>
         <div className="p-6 rounded-3xl bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30">
-          <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-2">7d Focus Mood</div>
+          <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-2">Focus Mood</div>
           <div className="text-4xl font-bold text-indigo-900 dark:text-slate-100">
             {moodEmojiMap[stats.dominantMood]}
           </div>
@@ -138,8 +140,8 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
           {/* Main Chart */}
           <div className="p-8 rounded-[40px] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm">
             <div className="flex justify-between items-center mb-8">
-              <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">Consistency & Mood Trend</h3>
-              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">7 Day Overview</span>
+              <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">Consistency View</h3>
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Completed Habits</span>
             </div>
             <div className="h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -171,7 +173,7 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
           <div className="p-8 rounded-[40px] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
-                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">Current Habits Observing</h3>
+                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">Habits Currently Observing</h3>
                 <span className="bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">Doing all of them</span>
               </div>
               <div className="flex gap-2">
@@ -224,7 +226,7 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
                   <div className="flex-1">
                     <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1 uppercase">
                       <span>{m}</span>
-                      <span>{stats.moodCounts[m]} sessions</span>
+                      <span>{stats.moodCounts[m]} logs</span>
                     </div>
                     <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                       <div 
@@ -243,12 +245,10 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
           </div>
 
           <div className="p-8 rounded-[40px] bg-indigo-600 text-white shadow-xl shadow-indigo-100 dark:shadow-none">
-            <div className="text-3xl mb-4">💡</div>
-            <h4 className="text-lg font-bold mb-2">Personal Coach Advice</h4>
+            <div className="text-3xl mb-4">🔬</div>
+            <h4 className="text-lg font-bold mb-2">Habit Science</h4>
             <p className="text-indigo-100 text-sm leading-relaxed">
-              {habits.length > 0 
-                ? `You've completed ${stats.last7Days[6].count} habits today. Remember: showing up on "Okay" days is where real growth happens.`
-                : "The first step to a better you is planting your first tiny habit."}
+              {stats.tip}
             </p>
           </div>
 
@@ -260,7 +260,7 @@ const Dashboard: React.FC<DashboardProps> = ({ habits }) => {
                 <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase">— {stats.latestWin.habitName}</div>
               </div>
             ) : (
-              <p className="text-xs text-slate-400 dark:text-slate-500 italic">No notes recorded yet.</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 italic">No notes recorded yet. Mastery takes time.</p>
             )}
           </div>
         </div>

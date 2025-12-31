@@ -12,6 +12,36 @@ import { Habit, Mood, CoachMessage, WeeklyReflection, HabitLog } from './types';
 import { TINY_HABITS } from './constants';
 import { getCoachResponse } from './services/geminiService';
 
+const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
+  const [step, setStep] = useState(1);
+  const steps = [
+    { title: "Start Tiny", text: "Big goals are scary. We start with habits so small they're impossible to fail.", icon: "🌱" },
+    { title: "Stay Consistent", text: "Showing up is the only goal. Perfect is the enemy of consistent.", icon: "🔄" },
+    { title: "Grow Slowly", text: "As your roots get stronger, your habits grow with you. Kind science works.", icon: "🌳" }
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[300] bg-white dark:bg-slate-900 flex items-center justify-center p-6 text-center">
+      <div className="max-w-md w-full animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="text-8xl mb-8">{steps[step-1].icon}</div>
+        <h2 className="text-4xl font-black text-slate-800 dark:text-slate-100 mb-4">{step}. {steps[step-1].title}</h2>
+        <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-12">{steps[step-1].text}</p>
+        <div className="flex gap-2 justify-center mb-8">
+          {steps.map((_, i) => (
+            <div key={i} className={`h-1.5 w-1.5 rounded-full ${step === i + 1 ? 'bg-emerald-500 w-6' : 'bg-slate-200'} transition-all`} />
+          ))}
+        </div>
+        <button 
+          onClick={() => step === 3 ? onComplete() : setStep(step + 1)}
+          className="w-full py-5 bg-emerald-600 text-white rounded-[24px] font-bold text-xl shadow-xl shadow-emerald-100 dark:shadow-none hover:bg-emerald-700 transition-all"
+        >
+          {step === 3 ? "Let's Start" : "Next Step"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [toolView, setToolView] = useState<'timer' | 'library' | 'reflection'>('timer');
@@ -20,6 +50,7 @@ const App: React.FC = () => {
   const [checkInHabit, setCheckInHabit] = useState<Habit | null>(null);
   const [isAddingHabit, setIsAddingHabit] = useState(false);
   const [isLiveMode, setIsLiveMode] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarded'));
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
   
   // AI Coach State
@@ -65,6 +96,12 @@ const App: React.FC = () => {
   };
 
   const addHabit = (name: string, goal: string, difficulty: 'tiny' | 'normal' | 'advanced', motivation?: string) => {
+    // Overwhelm Shield: Max 3 habits
+    if (habits.length >= 3) {
+      alert("Overwhelm Shield Activated! Let's master your current 3 habits first. Simplicity wins.");
+      return;
+    }
+
     const newHabit: Habit = {
       id: Math.random().toString(36).substr(2, 9),
       name,
@@ -112,6 +149,13 @@ const App: React.FC = () => {
     setMessages(prev => [...prev, { role: 'coach', text: response, timestamp: Date.now() }]);
   };
 
+  const finishOnboarding = () => {
+    localStorage.setItem('onboarded', 'true');
+    setShowOnboarding(false);
+  };
+
+  if (showOnboarding) return <Onboarding onComplete={finishOnboarding} />;
+
   return (
     <Layout 
       activeTab={activeTab} 
@@ -123,9 +167,9 @@ const App: React.FC = () => {
         <div className="space-y-10 animate-in fade-in duration-700">
           <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 p-8 md:p-12 rounded-[40px] text-white shadow-2xl shadow-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-2">Build Your Consistency</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-2">Kind Habit Building</h2>
               <p className="text-emerald-100 opacity-90 text-lg">
-                One tiny step today, a giant leap tomorrow. You have <span className="font-bold underline">{habits.filter(h => !h.logs.some(l => l.date === new Date().toISOString().split('T')[0])).length}</span> tasks left.
+                Habit Coach notices your effort. You have <span className="font-bold underline">{habits.filter(h => !h.logs.some(l => l.date === new Date().toISOString().split('T')[0])).length}</span> tiny habits left for today.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -143,7 +187,7 @@ const App: React.FC = () => {
                 <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300">Habits We're Currently Observing</h3>
                 {habits.length > 0 && (
                   <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">
-                    ✓ All Active
+                    ✓ Doing all of them
                   </span>
                 )}
               </div>
@@ -154,12 +198,12 @@ const App: React.FC = () => {
               )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {habits.slice(0, 6).map(habit => (
+              {habits.map(habit => (
                 <HabitCard key={habit.id} habit={habit} onCheckIn={setCheckInHabit} onRescue={handleRescue} />
               ))}
               {habits.length === 0 && (
                 <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl">
-                  <p className="text-slate-400 dark:text-slate-500 font-bold">No habits yet. Start with a tiny step.</p>
+                  <p className="text-slate-400 dark:text-slate-500 font-bold">No habits yet. Master 1-3 tiny steps first.</p>
                 </div>
               )}
             </div>
@@ -172,7 +216,7 @@ const App: React.FC = () => {
           <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-6">
             <div>
               <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">My Garden</h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">Nurturing {habits.length} habits.</p>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">Nurturing {habits.length}/3 habits.</p>
             </div>
             <button onClick={() => setIsAddingHabit(true)} className="bg-emerald-500 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-emerald-100 dark:shadow-none hover:bg-emerald-600 transition-all">+ New Habit</button>
           </div>
@@ -214,7 +258,7 @@ const App: React.FC = () => {
               <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-2xl shadow-lg shadow-emerald-100 dark:shadow-none">✨</div>
               <div>
                 <h2 className="font-bold text-slate-800 dark:text-slate-100">AI Coach</h2>
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest">Supportive Mentor</p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest">Personal Mentor</p>
               </div>
             </div>
             <button onClick={() => setIsLiveMode(true)} className="px-4 py-2 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-emerald-200 transition-colors">🎙️ Go Live</button>
