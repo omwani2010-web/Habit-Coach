@@ -1,0 +1,7 @@
+{
+  "name": "Habit Coach",
+  "description": "A kind, supportive habit tracker that helps you build consistency through tiny steps and positive AI coaching.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

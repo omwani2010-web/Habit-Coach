@@ -1,0 +1,69 @@
+
+export const TINY_HABITS = [
+  { name: "Hydrate", goal: "Drink one glass of water", icon: "💧", category: "Health" },
+  { name: "Read", goal: "Read 2 pages of a book", icon: "📖", category: "Mind" },
+  { name: "Move", goal: "Walk for 5 minutes", icon: "🚶", category: "Health" },
+  { name: "Mindfulness", goal: "One minute of deep breathing", icon: "🧘", category: "Mind" },
+  { name: "Tidy", goal: "Put away 3 items in a room", icon: "✨", category: "Productivity" },
+  { name: "Journal", goal: "Write one sentence about today", icon: "✍️", category: "Mind" },
+];
+
+export const HABIT_PLANS = [
+  {
+    id: "sleep",
+    title: "Better Sleep",
+    description: "Wind down and wake up refreshed.",
+    habits: [
+      { name: "No Screens", goal: "Turn off phone 15m before bed", difficulty: "tiny" },
+      { name: "Morning Light", goal: "Step outside for 2m after waking", difficulty: "tiny" }
+    ],
+    icon: "🌙"
+  },
+  {
+    id: "focus",
+    title: "Study Focus",
+    description: "Deep work for busy minds.",
+    habits: [
+      { name: "Clear Desk", goal: "Remove 1 distraction from desk", difficulty: "tiny" },
+      { name: "Focus Block", goal: "Set a 10m timer for one task", difficulty: "tiny" }
+    ],
+    icon: "🧠"
+  },
+  {
+    id: "fitness",
+    title: "Fitness Starter",
+    description: "Start moving without the gym fear.",
+    habits: [
+      { name: "Squats", goal: "Do 5 squats while brushing teeth", difficulty: "tiny" },
+      { name: "Stretch", goal: "One child's pose stretch", difficulty: "tiny" }
+    ],
+    icon: "💪"
+  }
+];
+
+export const HABIT_LIBRARY = [
+  { 
+    category: "Health",
+    habits: [
+      { name: "Water", goal: "Drink water before coffee", icon: "💧" },
+      { name: "Sunlight", goal: "2 minutes of morning sun", icon: "☀️" },
+      { name: "Posture", goal: "One shoulder roll every hour", icon: "🧍" }
+    ]
+  },
+  {
+    category: "Productivity",
+    habits: [
+      { name: "Inbox", goal: "Archive 5 old emails", icon: "📧" },
+      { name: "Priority", goal: "Write down top 1 task", icon: "📝" },
+      { name: "Desktop", goal: "Close unused browser tabs", icon: "💻" }
+    ]
+  },
+  {
+    category: "Mind",
+    habits: [
+      { name: "Gratitude", goal: "Name 1 thing I'm thankful for", icon: "🙏" },
+      { name: "Breathing", goal: "3 deep belly breaths", icon: "🌬️" },
+      { name: "Observation", goal: "Notice 1 beautiful thing outside", icon: "🌸" }
+    ]
+  }
+];
